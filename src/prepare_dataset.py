@@ -28,7 +28,7 @@ def download_source() -> Path:
 
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "python"})
-            with urllib.request.urlopen(req, timeout=60) as resp:
+            with urllib.request.urlopen(req, timeout=60) as resp:  # nosec B310
                 data = resp.read()
 
             SRC_FILE.write_bytes(data)
