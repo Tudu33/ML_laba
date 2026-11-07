@@ -54,12 +54,11 @@ jobs:
     - name: Run Smoke Test
       run: docker run --rm ml-project:lab3
 
-    - name: Install Trivy Scanner
-      uses: aquasecurity/setup-trivy@v0
-      with:
-        version: latest
-
     - name: Security Gate (Trivy Image Scan)
-      run: |
-        trivy image --download-db-only --db-repository ghcr.io/aquasecurity/trivy-db:2
-        trivy image --severity CRITICAL --exit-code 1 --skip-db-update --ignorefile .trivyignore ml-project:lab3
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'ml-project:lab3'
+        format: 'table'
+        severity: 'CRITICAL'
+        exit-code: '1'
+        ignore-unfixed: true
