@@ -12,3 +12,4 @@ data/*.zip
 tmp/
 data/
 trivy-db.tar.gz
+!data/ci_sample.csv
