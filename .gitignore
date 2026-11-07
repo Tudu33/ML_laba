@@ -8,11 +8,7 @@ data/*.csv
 data/*.parquet
 data/*.zip
 
-models/*.pkl
-models/*.joblib
-models/*.h5
 
 tmp/
 data/
-models/
 trivy-db.tar.gz
