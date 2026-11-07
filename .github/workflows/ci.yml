@@ -2,9 +2,9 @@ name: ML Security CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ "**" ]
 
 jobs:
   security-and-quality:
