@@ -1,0 +1,28 @@
+.git/
+.github/
+.venv/
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+
+.env
+*.pem
+*.key
+*.token
+*.secret
+
+notebooks/
+metrics/
+tests/
+
+# Запрещаем большие датасеты, но ci_sample.csv скопируется
+data/dataset.csv
+data/*.parquet
+data/*.zip
+
+# Запрещаем другие форматы моделей, но .joblib разрешен по умолчанию
+models/*.pkl
+models/*.h5
+models/*.onnx
+
+*.md

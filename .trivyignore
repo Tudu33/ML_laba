@@ -1,0 +1,9 @@
+# Обоснование исключений для Security Gate:
+# Данные уязвимости имеют статус 'will_not_fix' или 'affected' в репозиториях Debian 12.
+# Патчи от вендора отсутствуют. Исключение является точечным и не отключает проверку остальных пакетов.
+
+# zlib1g: integer overflow (will_not_fix by vendor)
+CVE-2023-45853
+
+# libsqlite3-0: SQLite integer overflow (affected, no fix available yet)
+CVE-2025-7458

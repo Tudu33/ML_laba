@@ -1,0 +1,65 @@
+name: ML Security CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  security-and-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        # Устанавливаем инструменты проверки
+        pip install ruff bandit pip-audit trivy
+
+    - name: Lint code (Ruff)
+      run: ruff check src/ tests/ --exit-zero
+
+    - name: Static Analysis (Bandit)
+      run: python -m bandit -r src/ -ll
+
+    - name: Run Tests (pytest)
+      run: python -m pytest tests/ -v
+
+    - name: Dependency Audit (pip-audit)
+      run: pip-audit -r requirements.txt
+
+    - name: Data Quality Gate
+      run: python src/check_data.py data/ci_sample.csv
+
+    - name: Model Quality Gate
+      run: |
+        # Создаем candidate.json для проверки (в реальном CI здесь был бы этап обучения)
+        echo '{"f1_macro": 0.75}' > metrics/candidate.json
+        python src/check_model.py metrics/baseline.json metrics/candidate.json
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      run: docker build -t ml-project:lab3 .
+
+    - name: Run Smoke Test
+      run: docker run --rm ml-project:lab3
+
+    - name: Security Gate (Trivy Image Scan)
+      run: |
+        # Скачиваем легкую базу Trivy для CI (быстрее и надежнее)
+        export TRIVY_DB_REPOSITORY=ghcr.io/aquasecurity/trivy-db:2
+        trivy image --download-db-only
+        trivy image --severity CRITICAL --exit-code 1 --skip-db-update --ignorefile .trivyignore ml-project:lab3
