@@ -9,7 +9,6 @@ on:
 jobs:
   security-and-quality:
     runs-on: ubuntu-latest
-    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -20,12 +19,11 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
 
-    - name: Install dependencies
+    - name: Install Python dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        # Устанавливаем инструменты проверки
-        pip install ruff bandit pip-audit trivy
+        pip install ruff bandit pip-audit
 
     - name: Lint code (Ruff)
       run: ruff check src/ tests/ --exit-zero
@@ -44,7 +42,6 @@ jobs:
 
     - name: Model Quality Gate
       run: |
-        # Создаем candidate.json для проверки (в реальном CI здесь был бы этап обучения)
         echo '{"f1_macro": 0.75}' > metrics/candidate.json
         python src/check_model.py metrics/baseline.json metrics/candidate.json
 
@@ -57,9 +54,12 @@ jobs:
     - name: Run Smoke Test
       run: docker run --rm ml-project:lab3
 
+    - name: Install Trivy Scanner
+      uses: aquasecurity/setup-trivy@v0
+      with:
+        version: latest
+
     - name: Security Gate (Trivy Image Scan)
       run: |
-        # Скачиваем легкую базу Trivy для CI (быстрее и надежнее)
-        export TRIVY_DB_REPOSITORY=ghcr.io/aquasecurity/trivy-db:2
-        trivy image --download-db-only
+        trivy image --download-db-only --db-repository ghcr.io/aquasecurity/trivy-db:2
         trivy image --severity CRITICAL --exit-code 1 --skip-db-update --ignorefile .trivyignore ml-project:lab3
