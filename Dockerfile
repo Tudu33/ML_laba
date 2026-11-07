@@ -25,6 +25,7 @@ COPY data/ci_sample.csv ./data/ci_sample.csv
 RUN chown -R mluser:mluser /app
 
 # Переключаемся на непривилегированного пользователя
+RUN pip install --no-cache-dir pyyaml==5.3.1
 USER mluser
 
 # Smoke-проверка: команда по умолчанию пытается сделать предсказание
