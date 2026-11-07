@@ -42,7 +42,6 @@ jobs:
 
     - name: Model Quality Gate
       run: |
-        echo '{"f1_macro": 0.75}' > metrics/candidate.json
         python src/check_model.py metrics/baseline.json metrics/candidate.json
 
     - name: Set up Docker Buildx
