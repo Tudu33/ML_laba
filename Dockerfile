@@ -1,31 +1,32 @@
 FROM python:3.11.9-slim-bookworm
 
-# Переменные окружения для корректной работы Python в контейнере
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-WORKDIR /app
+# 1. Обновляем системные пакеты для закрытия уязвимостей
 RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
-ENV PYTHONPATH=/app
 
-# Создаем непривилегированного пользователя (НЕ root!)
+# 2. Создаем пользователя без прав root (UID 1000)
 RUN useradd -m -u 1000 mluser
 
-# Копируем и устанавливаем ТОЛЬКО runtime-зависимости
-COPY requirements-runtime.txt .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements-runtime.txt
+# 3. Устанавливаем зависимости
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем только необходимые файлы приложения
-COPY src/ ./src/
-COPY models/baseline_pipeline.joblib ./models/baseline_pipeline.joblib
-COPY data/ci_sample.csv ./data/ci_sample.csv
+# 4. Копируем код, модель, данные и тесты
+COPY src/ /app/src/
+COPY models/ /app/models/
+COPY data/ci_sample.csv /app/data/ci_sample.csv
+COPY static/ /app/static/
+COPY app.py /app/app.py
+COPY tests/ /app/tests/
 
-# Меняем владельца файлов на нашего пользователя
-RUN chown -R mluser:mluser /app
-
-# Переключаемся на непривилегированного пользователя
+# 5. Переключаемся на non-root пользователя
 USER mluser
 
-# Smoke-проверка: команда по умолчанию пытается сделать предсказание
-CMD ["python", "src/smoke_test.py"]
+# 6. Открываем порт для FastAPI
+EXPOSE 8001
+
+# 7. Проверка здоровья контейнера (используем встроенный python, т.к. curl может отсутствовать в slim)
+HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health')" || exit 1
+
+# 8. Запускаем приложение
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8001"]
