@@ -17,7 +17,6 @@ COPY models/ /app/models/
 COPY data/ci_sample.csv /app/data/ci_sample.csv
 COPY static/ /app/static/
 COPY app.py /app/app.py
-COPY tests/ /app/tests/
 
 # 5. Переключаемся на non-root пользователя
 USER mluser
